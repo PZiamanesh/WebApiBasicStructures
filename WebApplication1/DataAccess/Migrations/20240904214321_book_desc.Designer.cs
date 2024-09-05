@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.DataAccess;
 
@@ -10,9 +11,11 @@ using WebApplication1.DataAccess;
 namespace WebApplication1.Models.Data.Migrations
 {
     [DbContext(typeof(AspContext))]
-    partial class AspContextModelSnapshot : ModelSnapshot
+    [Migration("20240904214321_book_desc")]
+    partial class book_desc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
