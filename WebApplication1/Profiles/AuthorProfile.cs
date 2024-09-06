@@ -9,6 +9,7 @@ namespace WebApplication1.Profiles
         public AuthorProfile()
         {
             CreateMap<Author, AuthorResult>();
+            CreateMap<CreateAuthor, Author>();
         }
     }
 }

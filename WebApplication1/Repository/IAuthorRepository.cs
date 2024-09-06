@@ -11,11 +11,15 @@ namespace WebApplication1.Repository
 
         Task<bool> IsAuthorExistsAsync(int authorId);
 
+        Author CreateAuthor(Author author);
+
         Task<IEnumerable<Book>> GetBooksOfAuthor(int authorId);
 
         Task<Book?> GetBookOfAuthor(int authorId, int bookId);
 
         Task AddBookForAuthor(int authorId, Book book);
+
+        void UpdateBookOfAuthor(Book book);
 
         Task<bool> SaveAsync();
     }

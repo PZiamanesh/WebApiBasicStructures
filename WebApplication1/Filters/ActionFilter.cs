@@ -9,13 +9,21 @@ namespace WebApplication1.Filters
             ActionExecutingContext context,
             ActionExecutionDelegate next)
         {
-            ;
-            //context.Result = new StatusCodeResult(500);
+            if (!context.ModelState.IsValid)
+            {
+                var problemDetails = new ValidationProblemDetails()
+                {
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Title = "Input Model Validation Error Occured.",
+                    Errors = new Dictionary<string, string[]>()
+                };
 
+                foreach (var inputValue in context.ModelState.Values)
+                {
+                   
+                }
+            }
             await next();
-
-            throw new NotImplementedException();
-            ;
         }
     }
 }

@@ -81,6 +81,12 @@ namespace WebApplication1.Repository
             return await _context.Authors.AnyAsync(a => a.Id == id);
         }
 
+        public Author CreateAuthor(Author author)
+        {
+            var result = _context.Authors.Add(author);
+            return result.Entity;
+        }
+
         public async Task<Book?> GetBookOfAuthor(int authorId, int bookId)
         {
             return await _context.Books.FirstOrDefaultAsync(b => b.AuthorId == authorId && b.Id == bookId);
@@ -104,6 +110,11 @@ namespace WebApplication1.Repository
         public async Task<bool> SaveAsync()
         {
            return (await _context.SaveChangesAsync() >= 0);
+        }
+
+        public void UpdateBookOfAuthor(Book book)
+        {
+            _context.Update(book);
         }
     }
 }

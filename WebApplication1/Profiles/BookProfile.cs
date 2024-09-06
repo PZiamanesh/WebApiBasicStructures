@@ -10,6 +10,7 @@ namespace WebApplication1.Profiles
         {
             CreateMap<Book, BookResult>();
             CreateMap<CreateBook, Book>();
+            CreateMap<UpdateBook, Book>();
         }
     }
 }

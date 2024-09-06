@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using System.Reflection;
 using System.Text.Json;
 using WebApplication1.DomainModels;
 using WebApplication1.Repository;
@@ -43,7 +44,7 @@ namespace WebApplication1.Controllers
             return Ok(authorsResult);
         }
 
-        [HttpGet("{authorId:int}")]
+        [HttpGet("{authorId:int}", Name = "CreateAuthor")]
         public async Task<IActionResult> GetAuthor(int authorId, bool includeBooks)
         {
             if (!await _authorRepository.IsAuthorExistsAsync(authorId))
@@ -55,6 +56,21 @@ namespace WebApplication1.Controllers
             var authorResult = _mapper.Map<AuthorResult>(author);
 
             return Ok(authorResult);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<AuthorResult>> CreateAuthor(CreateAuthor createAuthor)
+        {
+            var author = _mapper.Map<Author>(createAuthor);
+            var newAuthor = _authorRepository.CreateAuthor(author);
+            await _authorRepository.SaveAsync();
+            var authorDto = _mapper.Map<AuthorResult>(newAuthor);
+
+            return CreatedAtRoute(
+                "CreateAuthor",
+                new { authorId = newAuthor.Id, includeBooks = createAuthor.Books.Any() },
+                authorDto
+                );
         }
     }
 }

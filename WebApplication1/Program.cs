@@ -12,6 +12,7 @@ using WebApplication1.Repository;
 using WebApplication1.RouteConstraints;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -28,11 +29,26 @@ builder.Host.UseSerilog();
 
 builder.Services.AddControllers(opts =>
 {
+    //opts.Filters.Add(typeof(ActionFilter));
     opts.ReturnHttpNotAcceptable = true;
 })
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            // Rest of ValidationProblemDetails properties will be filled automaticaly
+            var problemDetails = new ValidationProblemDetails(context.ModelState)
+            {
+                Status = StatusCodes.Status422UnprocessableEntity,
+                Instance = context.HttpContext.Request.Path
+            };
+
+            return new UnprocessableEntityObjectResult(problemDetails);
+        };
     });
 
 builder.Services.AddDbContext<AspContext>(opts =>
@@ -48,6 +64,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.Configure<AuthenticationInfoOption>(config.GetSection("Authentication"));
 
+#region Security
 //builder.Services.AddAuthentication("Bearer")
 //    .AddJwtBearer(opts =>
 //    {
@@ -70,13 +87,15 @@ builder.Services.Configure<AuthenticationInfoOption>(config.GetSection("Authenti
 //        authzPolicy.RequireClaim("userName", "ziasniper");
 //    });
 //});
+#endregion
 
 builder.Services.AddApiVersioning(opts =>
 {
     opts.ReportApiVersions = true;
     opts.AssumeDefaultVersionWhenUnspecified = true;
     opts.DefaultApiVersion = new Asp.Versioning.ApiVersion(1.0);
-}).AddMvc();
+})
+    .AddMvc();
 
 
 
@@ -86,9 +105,11 @@ app.UseDeveloperExceptionPage();
 
 app.UseRouting();
 
+#region Security
 //app.UseAuthentication();
 
 //app.UseAuthorization();
+#endregion
 
 app.UseEndpoints(endpoints =>
 {

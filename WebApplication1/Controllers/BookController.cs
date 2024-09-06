@@ -2,6 +2,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Xml.Serialization;
 using WebApplication1.DomainModels;
 using WebApplication1.Repository;
 using WebApplication1.ViewModels;
@@ -79,6 +80,31 @@ namespace WebApplication1.Controllers
                 new {AuthorId =  authorId , BookId = bookResult.Id},
                 bookResult
                 );
+        }
+
+        [HttpPut("{bookId:int}")]
+        public async Task<IActionResult> UpdateBookOfAuthor(
+            int authorId,
+            int bookId,
+            UpdateBook updateBookDto)
+        {
+            if (!await _authorRepository.IsAuthorExistsAsync(authorId))
+            {
+                return NotFound();
+            }
+
+            var book = await _authorRepository.GetBookOfAuthor(authorId, bookId);
+
+            if (book is null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(updateBookDto, book);
+            _authorRepository.UpdateBookOfAuthor(book);
+            await _authorRepository.SaveAsync();
+
+            return NoContent();
         }
     }
 }
