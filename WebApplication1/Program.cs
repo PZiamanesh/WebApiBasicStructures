@@ -20,27 +20,27 @@ var config = builder.Configuration;
 
 var authenticationOptions = config.GetSection("Authentication").Get<AuthenticationInfoOption>();
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
-    .WriteTo.Console()
-    .CreateLogger();
+//Log.Logger = new LoggerConfiguration()
+//    .MinimumLevel.Debug()
+//    .WriteTo.Console()
+//    .CreateLogger();
 
-builder.Host.UseSerilog();
+//builder.Host.UseSerilog();
 
 builder.Services.AddControllers(opts =>
 {
     //opts.Filters.Add(typeof(ActionFilter));
     opts.ReturnHttpNotAcceptable = true;
+    opts.CacheProfiles.Add("240sCache", new() { Duration = 240 });
 })
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     })
-    .ConfigureApiBehaviorOptions(options =>
+    .ConfigureApiBehaviorOptions(opts =>
     {
-        options.InvalidModelStateResponseFactory = context =>
+        opts.InvalidModelStateResponseFactory = context =>
         {
-            // Rest of ValidationProblemDetails properties will be filled automaticaly
             var problemDetails = new ValidationProblemDetails(context.ModelState)
             {
                 Status = StatusCodes.Status422UnprocessableEntity,
@@ -97,6 +97,25 @@ builder.Services.AddApiVersioning(opts =>
 })
     .AddMvc();
 
+#region Caching
+//builder.Services.AddResponseCaching();
+
+//builder.Services.AddHttpCacheHeaders(
+//    (expirationModel) => 
+//    {
+//        expirationModel.MaxAge = 1000;
+//        expirationModel.CacheLocation = Marvin.Cache.Headers.CacheLocation.Public;
+//    },
+//    (validationModel) =>
+//    {
+//        validationModel.MustRevalidate = false;
+//    }
+//    );
+#endregion
+
+builder.Services.AddHttpClient();
+
+
 
 
 var app = builder.Build();
@@ -110,6 +129,10 @@ app.UseRouting();
 
 //app.UseAuthorization();
 #endregion
+
+//app.UseResponseCaching();
+
+//app.UseHttpCacheHeaders();
 
 app.UseEndpoints(endpoints =>
 {

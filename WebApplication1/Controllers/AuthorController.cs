@@ -1,11 +1,13 @@
 ﻿using Asp.Versioning;
 using AutoMapper;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using System.Reflection;
 using System.Text.Json;
 using WebApplication1.DomainModels;
+using WebApplication1.Filters;
 using WebApplication1.Repository;
 using WebApplication1.ViewModels;
 
@@ -31,6 +33,9 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
+        //[ResponseCache(Duration = 120)]
+        //[HttpCacheExpiration(MaxAge = 100, CacheLocation = CacheLocation.Public)]
+        //[HttpCacheValidation(MustRevalidate = true)]
         public async Task<ActionResult<IEnumerable<AuthorResult>>> GetAuthors(
             bool includeBooks, 
             string? name,
@@ -44,18 +49,28 @@ namespace WebApplication1.Controllers
             return Ok(authorsResult);
         }
 
+        [HttpGet("Stream")]
+        public async IAsyncEnumerable<Author> GetAuthorsAsStream()
+        {
+            await foreach (var author in _authorRepository.GetAuthorsAsyncEnumerable())
+            {
+                yield return author;
+            }
+        }
+
         [HttpGet("{authorId:int}", Name = "CreateAuthor")]
-        public async Task<IActionResult> GetAuthor(int authorId, bool includeBooks)
+        [TypeFilter<AuthorResultFilter>()]
+        public async Task<IActionResult> GetAuthor(int authorId, bool includeBooks, CancellationToken token)
         {
             if (!await _authorRepository.IsAuthorExistsAsync(authorId))
             {
                 return NotFound();
             }
 
-            var author = await _authorRepository.GetAuthorAsync(authorId, includeBooks);
-            var authorResult = _mapper.Map<AuthorResult>(author);
+            var author = await _authorRepository.GetAuthorAsync(authorId, token, includeBooks);
+            //var authorResult = _mapper.Map<AuthorResult>(author);
 
-            return Ok(authorResult);
+            return Ok(author);
         }
 
         [HttpPost]

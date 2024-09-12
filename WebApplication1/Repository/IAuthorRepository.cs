@@ -5,6 +5,8 @@ namespace WebApplication1.Repository
 {
     public interface IAuthorRepository
     {
+        Task<Author?> GetAuthorAsync(int authorId, CancellationToken token, bool includeBooks);
+
         Task<Author?> GetAuthorAsync(int authorId, bool includeBooks);
 
         Task<(IEnumerable<Author>, PaginationMetadata)> GetAuthorsAsync(int pageNumber, int pageSize, bool includeBooks, string? name);
@@ -20,6 +22,8 @@ namespace WebApplication1.Repository
         Task AddBookForAuthor(int authorId, Book book);
 
         void UpdateBookOfAuthor(Book book);
+
+        IAsyncEnumerable<Author> GetAuthorsAsyncEnumerable();
 
         Task<bool> SaveAsync();
     }

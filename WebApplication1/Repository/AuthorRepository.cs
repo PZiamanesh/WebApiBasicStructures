@@ -10,14 +10,17 @@ namespace WebApplication1.Repository
     public class AuthorRepository : IAuthorRepository
     {
         private readonly AspContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public AuthorRepository(AspContext context)
+        public AuthorRepository(AspContext context, IHttpClientFactory httpClientFactory)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<Author?> GetAuthorAsync(
-            int id, 
+            int id,
+            CancellationToken token,
             bool includeBooks = false)
         {
             if (includeBooks)
@@ -27,7 +30,8 @@ namespace WebApplication1.Repository
                     .FirstOrDefaultAsync(a => a.Id == id);
             }
 
-            return await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
+            var result = await _context.Authors.FirstOrDefaultAsync(a => a.Id == id);
+            return result;
         }
 
         public async Task<(IEnumerable<Author>, PaginationMetadata)> GetAuthorsAsync(
@@ -36,7 +40,7 @@ namespace WebApplication1.Repository
             bool includeBooks = false,
             string? name = null)
         {
-            const int maxPageSize = 4;
+            const int maxPageSize = 34;
 
             if (pageNumber <= 0)
             {
@@ -99,7 +103,7 @@ namespace WebApplication1.Repository
 
         public async Task AddBookForAuthor(int authorId, Book book)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id ==  authorId);
+            var author = await _context.Authors.FirstOrDefaultAsync(a => a.Id == authorId);
 
             if (author is { })
             {
@@ -109,12 +113,29 @@ namespace WebApplication1.Repository
 
         public async Task<bool> SaveAsync()
         {
-           return (await _context.SaveChangesAsync() >= 0);
+            return (await _context.SaveChangesAsync() >= 0);
         }
 
         public void UpdateBookOfAuthor(Book book)
         {
             _context.Update(book);
+        }
+
+        public IAsyncEnumerable<Author> GetAuthorsAsyncEnumerable()
+        {
+            return _context.Authors.Include(a => a.Books).AsAsyncEnumerable<Author>();
+        }
+
+        public async Task<Author?> GetAuthorAsync(int authorId, bool includeBooks)
+        {
+            if (includeBooks)
+            {
+                return await _context.Authors
+                    .Include(a => a.Books)
+                    .FirstOrDefaultAsync(a => a.Id == authorId);
+            }
+
+            return await _context.Authors.FirstOrDefaultAsync(a => a.Id == authorId);
         }
     }
 }

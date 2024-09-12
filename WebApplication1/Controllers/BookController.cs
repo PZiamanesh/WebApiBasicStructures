@@ -27,6 +27,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet]
+        //[ResponseCache(CacheProfileName = "240sCache")]
         public async Task<IActionResult> GetBooksOfAuthor(int authorId)
         {
             if (!await _authorRepository.IsAuthorExistsAsync(authorId))
